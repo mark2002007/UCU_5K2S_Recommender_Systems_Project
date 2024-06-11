@@ -1,6 +1,7 @@
-ML_MOVIES_PATH='data/ml-1m/movies.dat'
-ML_RATINGS_PATH='data/ml-1m/ratings.dat'
-ML_USERS_PATH='data/ml-1m/users.dat'
-BC_BOOKS_PATH='data/bc/Books.csv'
-BC_RATINGS_PATH='data/bc/Ratings.csv'
-BC_USERS_PATH='data/bc/Users.csv'
+import os
+ML_MOVIES_PATH=os.path.join('data', 'ml-1m', 'movies.dat')
+ML_RATINGS_PATH=os.path.join('data', 'ml-1m','ratings.dat')
+ML_USERS_PATH=os.path.join('data', 'ml-1m', 'users.dat')
+BC_BOOKS_PATH=os.path.join('data', 'bc', 'Books.csv')
+BC_RATINGS_PATH=os.path.join('data', 'bc', 'Ratings.csv')
+BC_USERS_PATH=os.path.join('data', 'bc', 'Users.csv')
