@@ -1,5 +1,6 @@
 import polars as pl
 
+
 def ml_precision_at_k(k, rec_df, ml_ratings_test_df, user_id):
     ml_user_ratings_test_df = ml_ratings_test_df.filter(pl.col("UserID") == user_id)
     topk = rec_df.head(k).with_columns([
@@ -8,6 +9,7 @@ def ml_precision_at_k(k, rec_df, ml_ratings_test_df, user_id):
     top_k_len = topk.select(pl.len()).collect().item()
     ml_precision_at_k = topk.select(pl.col("is_relevant").sum()).collect().item() / top_k_len
     return ml_precision_at_k
+
 
 def ml_recall_at_k(k, rec_df, ml_ratings_test_df, user_id):
     ml_user_ratings_test_df = ml_ratings_test_df.filter(pl.col("UserID") == user_id)
@@ -19,6 +21,7 @@ def ml_recall_at_k(k, rec_df, ml_ratings_test_df, user_id):
         return 0
     recall_at_k = topk.select(pl.col("is_relevant").sum()).collect().item() / ml_user_ratings_test_df_len
     return recall_at_k
+
 
 def ml_f1_at_k(k, rec_df, ml_ratings_test_df, user_id):
     precision = ml_precision_at_k(k, rec_df, ml_ratings_test_df, user_id)
