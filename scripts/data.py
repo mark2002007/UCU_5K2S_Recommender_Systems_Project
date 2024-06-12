@@ -40,7 +40,7 @@ ml_occupation_map = {i: occupation for i, occupation in enumerate(ml_ocupations)
 ml_users_df = pl.scan_csv(os.path.join(ROOT, ML_USERS_PATH), has_header=False, truncate_ragged_lines=True, encoding="utf8-lossy").select([
     pl.col("column_1").str.split("::")
 ]).select([
-    pl.col("column_1").list.get(0).alias("UserID").cast(pl.Int32),
+    pl.col("column_1").list.get(0).alias("UserID").cast(pl.Int32) - 1,
     pl.col("column_1").list.get(1).alias("Gender"),
     pl.col("column_1").list.get(2).alias("Age").cast(pl.Int32),
     pl.col("column_1").list.get(3).alias("Occupation").cast(pl.Int32).map_dict(ml_occupation_map),
@@ -56,7 +56,7 @@ ml_users_df = pl.scan_csv(os.path.join(ROOT, ML_USERS_PATH), has_header=False, t
 ml_movies_df = pl.scan_csv(os.path.join(ROOT, ML_MOVIES_PATH), has_header=False, truncate_ragged_lines=True, encoding="utf8-lossy").select([
     pl.col("column_1").str.split("::")
 ]).select([
-    pl.col("column_1").list.get(0).alias("MovieID").cast(pl.Int32),
+    pl.col("column_1").list.get(0).alias("MovieID").cast(pl.Int32) - 1,
     pl.col("column_1").list.get(1).alias("Title"),
     pl.col("column_1").list.get(2).str.split("|").alias("Genres")
 ]).with_columns([
@@ -80,8 +80,8 @@ ml_movies_df = ml_movies_df.with_columns([
 ml_ratings_df = pl.scan_csv(os.path.join(ROOT, ML_RATINGS_PATH), has_header=False).select([
     pl.col("column_1").str.split("::")
 ]).select([
-    pl.col("column_1").list.get(0).alias("UserID").cast(pl.Int32),
-    pl.col("column_1").list.get(1).alias("MovieID").cast(pl.Int32),
+    pl.col("column_1").list.get(0).alias("UserID").cast(pl.Int32) - 1,
+    pl.col("column_1").list.get(1).alias("MovieID").cast(pl.Int32) - 1,
     pl.col("column_1").list.get(2).alias("Rating").cast(pl.Int32),
     pl.col("column_1").list.get(3).alias("Timestamp").cast(pl.Int32)
 ])
