@@ -51,7 +51,9 @@ def ml_recall_at_k(k, rec_df, ml_ratings_test_df, user_id, verbose=True):
     recall_at_k = topk["is_relevant"].sum() / len(ml_user_ratings_test_df)
     return recall_at_k
 
-def ml_f1_at_k(k, rec_df, ml_ratings_test_df, user_id, verbose=True):
-    precision = ml_precision_at_k(k, rec_df, ml_ratings_test_df, user_id, verbose)
-    recall = ml_recall_at_k(k, rec_df, ml_ratings_test_df, user_id, verbose)
-    return 2 * (precision * recall) / (precision + recall + 1e-12)
+def ml_f1_at_k(k, rec_df, ml_ratings_test_df, user_id, precision_at_k=None, recall_at_k=None, verbose=True):
+    if precision_at_k is None:
+        precision_at_k = ml_precision_at_k(k, rec_df, ml_ratings_test_df, user_id, verbose)
+    if recall_at_k is None:
+        recall_at_k = ml_recall_at_k(k, rec_df, ml_ratings_test_df, user_id, verbose)
+    return 2 * (precision_at_k * recall_at_k) / (precision_at_k + recall_at_k + 1e-12)
