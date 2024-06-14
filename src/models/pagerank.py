@@ -9,11 +9,11 @@ from tqdm import tqdm
 from src.metrics import (
     ml_precision_at_k, ml_recall_at_k, ml_f1_at_k
 )
+from src.models.base import BaseRecommender
 
-class PageRankRecommender():
+class PageRankRecommender(BaseRecommender):
     def __init__(self, ml_movies_df, ml_users_df):
-        self.ml_movies_df = ml_movies_df
-        self.ml_users_df = ml_users_df
+        super().__init__(ml_movies_df, ml_users_df)
         self.A_norm = None
         if os.path.exists("A_norm.npy"):
             self.A_norm = np.load("A_norm.npy")
@@ -25,29 +25,15 @@ class PageRankRecommender():
             np.save("A_norm.npy", self.A_norm)
         self.pagerank_scores = self._pagerank(self.A_norm)
         self.ml_ratings_train_df = ml_ratings_train_df
+        
+        movies_ids = self.ml_movies_df['MovieID'].values
+        self.scores = pd.DataFrame(self.pagerank_scores, index=movies_ids, columns=["Score"])\
+            .sort_values("Score", ascending=False)
     
     def predict(self, user_id, n_recommendations):
-        movies_ids = self.ml_movies_df['MovieID'].values
         user_rated_movies_idx = self.ml_ratings_train_df[self.ml_ratings_train_df["UserID"] == user_id]["MovieID"].values
-        scores = pd.DataFrame(self.pagerank_scores, index=movies_ids, columns=["Score"])\
-            .sort_values("Score", ascending=False)\
-            .drop(user_rated_movies_idx, errors='ignore').head(n_recommendations)
+        scores = self.scores.drop(user_rated_movies_idx, errors='ignore').head(n_recommendations)
         return scores
-    
-    def evaluate(self, ml_ratings_test_df, k):
-        users = ml_ratings_test_df["UserID"].unique()
-        history = {"precision@k": [], "recall@k": [], "f1@k": []}
-        for user_id in tqdm(users):
-            recommendations = self.predict(user_id, k)
-            recommendations = recommendations.reset_index()
-            recommendations.columns = ["MovieID", "Score"]
-            precision_at_k = ml_precision_at_k(k, recommendations, ml_ratings_test_df, user_id)
-            recall_at_k = ml_recall_at_k(k, recommendations, ml_ratings_test_df, user_id)
-            f1_at_k = ml_f1_at_k(k, recommendations, ml_ratings_test_df, user_id)
-            history["precision@k"].append(precision_at_k)
-            history["recall@k"].append(recall_at_k)
-            history["f1@k"].append(f1_at_k)
-        return history
 
     def _init_adjacency_matrix(self, ml_ratings_train_df):
         movies_ids = self.ml_movies_df['MovieID'].values
