@@ -53,10 +53,10 @@ class BaseRecommender:
                 history["precision@k"].append(precision_at_k)
                 history["recall@k"].append(recall_at_k)
                 history["f1@k"].append(f1_at_k)
-                
+
                 sum_f1 += f1_at_k
                 cnt_f1 += 1
-                if verbose: 
+                if verbose:
                     pbar.set_postfix_str(f"Avg F1@K: {sum_f1 / cnt_f1:.2f}")
                 pbar.update(1)
         return history
