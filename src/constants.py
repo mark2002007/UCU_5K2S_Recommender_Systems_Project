@@ -1,10 +1,10 @@
 import os
 
-ML_MOVIES_PATH = os.path.join("data", "ml-1m", "movies.dat")
-ML_RATINGS_PATH = os.path.join("data", "ml-1m", "ratings.dat")
-ML_USERS_PATH = os.path.join("data", "ml-1m", "users.dat")
-BC_BOOKS_PATH = os.path.join("data", "bc", "Books.csv")
-BC_RATINGS_PATH = os.path.join("data", "bc", "Ratings.csv")
-BC_USERS_PATH = os.path.join("data", "bc", "Users.csv")
+ML_BRONZE_PATH = os.path.join("data", "bronze", "ml-1m")
+BC_BRONZE_PATH = os.path.join("data", "bronze", "bc")
 
-T_SPLIT_POINT = 970_000_000
+ML_SILVER_PATH = os.path.join("data", "silver", "ml-1m")
+BC_SILVER_PATH = os.path.join("data", "silver", "bc")
+
+ML_SILVER_TABLES = "ml_complete", "ml_users", "ml_ratings", "ml_movies", "ml_genres"
+BC_SILVER_TABLES = "bc_complete", "bc_users", "bc_ratings", "bc_books"
