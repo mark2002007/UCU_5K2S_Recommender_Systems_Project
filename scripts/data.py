@@ -1,14 +1,27 @@
 import os
 
-ROOT = os.path.join("..", "..")
+ROOT = os.path.join("..")
 import sys
 
 sys.path.append(ROOT)
 #
-from src.constants import ML_MOVIES_PATH, ML_RATINGS_PATH, ML_USERS_PATH, BC_BOOKS_PATH, BC_RATINGS_PATH, BC_USERS_PATH
 import polars as pl
+from src.constants import ML_BRONZE_PATH, ML_SILVER_PATH, BC_BRONZE_PATH, BC_SILVER_PATH
 
-#############################################################################MOVIE LENS DATASET
+# Set output directories
+ML_INPUT_DIR = os.path.join(ROOT, ML_BRONZE_PATH)
+BC_INPUT_DIR = os.path.join(ROOT, BC_BRONZE_PATH)
+
+
+ML_MOVIES_PATH = os.path.join(ML_INPUT_DIR, "movies.dat")
+ML_RATINGS_PATH = os.path.join(ML_INPUT_DIR, "ratings.dat")
+ML_USERS_PATH = os.path.join(ML_INPUT_DIR, "users.dat")
+BC_BOOKS_PATH = os.path.join(BC_INPUT_DIR, "Books.csv")
+BC_RATINGS_PATH = os.path.join(BC_INPUT_DIR, "Ratings.csv")
+BC_USERS_PATH = os.path.join(BC_INPUT_DIR, "Users.csv")
+
+
+# MOVIE LENS DATASET
 
 # 1) Read lines and split them by "::"
 # 2) Select the columns and cast them to the correct types
@@ -37,7 +50,7 @@ ml_ocupations = [
 ]
 ml_occupation_map = {i: occupation for i, occupation in enumerate(ml_ocupations)}
 ml_users_df = (
-    pl.scan_csv(os.path.join(ROOT, ML_USERS_PATH), has_header=False, truncate_ragged_lines=True, encoding="utf8-lossy")
+    pl.scan_csv(ML_USERS_PATH, has_header=False, truncate_ragged_lines=True, encoding="utf8-lossy")
     .select([pl.col("column_1").str.split("::")])
     .select(
         [
@@ -57,7 +70,7 @@ ml_users_df = (
 #   If the title is "Toy Story (1995)", the title should be "Toy Story" and the year should be 1995.
 #   If the title does not have a year, the year should be null.
 ml_movies_df = (
-    pl.scan_csv(os.path.join(ROOT, ML_MOVIES_PATH), has_header=False, truncate_ragged_lines=True, encoding="utf8-lossy")
+    pl.scan_csv(ML_MOVIES_PATH, has_header=False, truncate_ragged_lines=True, encoding="utf8-lossy")
     .select([pl.col("column_1").str.split("::")])
     .select(
         [
@@ -82,12 +95,12 @@ ml_movies_df = (
     )
 )
 # 4) Get possible genres
-ml_genres = ml_movies_df.select(pl.col("Genres").explode().unique()).collect()
+ml_genres_df = ml_movies_df.select(pl.col("Genres").explode().unique()).collect()
 # 5) Make dummy variable for each genre
 ml_movies_df = ml_movies_df.with_columns(
     [
         pl.col("Genres").list.contains(genre[0]).alias(f"Is{genre[0]}")
-        for genre in ml_genres.rows()
+        for genre in ml_genres_df.rows()
         if genre[0] is not None
     ]
 )
@@ -95,7 +108,7 @@ ml_movies_df = ml_movies_df.with_columns(
 # 1) Read lines and split them by "::"
 # 2) Select columns and cast them to the correct type
 ml_ratings_df = (
-    pl.scan_csv(os.path.join(ROOT, ML_RATINGS_PATH), has_header=False)
+    pl.scan_csv(ML_RATINGS_PATH, has_header=False)
     .select([pl.col("column_1").str.split("::")])
     .select(
         [
@@ -110,27 +123,40 @@ ml_ratings_df = (
 # Join dataframes
 ml_df = ml_ratings_df.join(ml_movies_df, on="MovieID").join(ml_users_df, on="UserID")
 
-def ml_train_test_split(ml_ratings_df, min_user_test_samples, t_split_point):
-    # Split data into train and test in T_SPLIT_POINT
-    ml_ratings_train_df = ml_ratings_df[ml_ratings_df['Timestamp'] < t_split_point]
-    ml_ratings_test_df = ml_ratings_df[ml_ratings_df['Timestamp'] >= t_split_point]
-    # Keep only users in test that have at least MAX_K ratings
-    users_with_enough_ratings = ml_ratings_test_df['UserID'].value_counts()
-    users_with_enough_ratings = users_with_enough_ratings[users_with_enough_ratings >= min_user_test_samples]
-    ml_ratings_test_df = ml_ratings_test_df[ml_ratings_test_df['UserID'].isin(users_with_enough_ratings.index)]
-    # Keep only users in train that are in the test
-    users_from_test = ml_ratings_test_df['UserID'].unique()
-    ml_ratings_train_df = ml_ratings_train_df[ml_ratings_train_df['UserID'].isin(users_from_test)]
-    return ml_ratings_train_df, ml_ratings_test_df
+# BOOK CROSSING
 
-#############################################################################BOOK CROSSING
+bc_books_df = pl.scan_csv(BC_BOOKS_PATH, separator=";")
 
-bc_books_df = pl.scan_csv(os.path.join(ROOT, BC_BOOKS_PATH), separator=";")
+bc_users_df = pl.scan_csv(BC_USERS_PATH, separator=";").filter(pl.col("Age").is_between(5, 100))
 
-bc_users_df = pl.scan_csv(os.path.join(ROOT, BC_USERS_PATH), separator=";").filter(pl.col("Age").is_between(5, 100))
-
-bc_ratings_df = pl.scan_csv(os.path.join(ROOT, BC_RATINGS_PATH), separator=";").filter(
+bc_ratings_df = pl.scan_csv(BC_RATINGS_PATH, separator=";").filter(
     pl.col("User-ID").is_in(bc_users_df.select("User-ID").collect()),
 )
 
 bc_df = bc_ratings_df.join(bc_users_df, on="User-ID").join(bc_books_df, on="ISBN")
+
+
+# Set output directories
+ML_OUTPUT_DIR = os.path.join(ROOT, ML_SILVER_PATH)
+BC_OUTPUT_DIR = os.path.join(ROOT, BC_SILVER_PATH)
+
+# Create output directories if they don't exist
+os.makedirs(ML_OUTPUT_DIR, exist_ok=True)
+os.makedirs(BC_OUTPUT_DIR, exist_ok=True)
+
+
+def write_to_parquet(df, path):
+    df.collect().write_parquet(path)
+
+
+# Write to Parquet
+write_to_parquet(ml_df, os.path.join(ML_OUTPUT_DIR, "ml_complete.parquet"))
+write_to_parquet(ml_users_df, os.path.join(ML_OUTPUT_DIR, "ml_users.parquet"))
+write_to_parquet(ml_ratings_df, os.path.join(ML_OUTPUT_DIR, "ml_ratings.parquet"))
+write_to_parquet(ml_movies_df, os.path.join(ML_OUTPUT_DIR, "ml_movies.parquet"))
+ml_genres_df.write_parquet(os.path.join(ML_OUTPUT_DIR, "ml_genres.parquet"))
+
+write_to_parquet(bc_df, os.path.join(BC_OUTPUT_DIR, "bc_complete.parquet"))
+write_to_parquet(bc_users_df, os.path.join(BC_OUTPUT_DIR, "bc_users.parquet"))
+write_to_parquet(bc_ratings_df, os.path.join(BC_OUTPUT_DIR, "bc_ratings.parquet"))
+write_to_parquet(bc_books_df, os.path.join(BC_OUTPUT_DIR, "bc_books.parquet"))
