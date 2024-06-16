@@ -15,22 +15,25 @@ from src.models.base import BaseRecommender
 class PageRankRecommender(BaseRecommender):
     def __init__(self, ml_movies_df, ml_users_df):
         super().__init__(ml_movies_df, ml_users_df)
+        # Load adjacency matrix if it exists
         self.A_norm = None
         if os.path.exists("A_norm.npy"):
             self.A_norm = np.load("A_norm.npy")
 
     def fit(self, ml_ratings_train_df):
+        # Initialize adjacency matrix if it doesn't exist
         if self.A_norm is None:
             print("Initializing adjacency matrix...")
             self._init_adjacency_matrix(ml_ratings_train_df)
             np.save("A_norm.npy", self.A_norm)
+        # Run pagerank
         self.pagerank_scores = self._pagerank(self.A_norm)
-        self.ml_ratings_train_df = ml_ratings_train_df
-
+        # Create scores dataframe
         movies_ids = self.ml_movies_df["MovieID"].values
         self.scores = pd.DataFrame(self.pagerank_scores, index=movies_ids, columns=["Score"]).sort_values(
             "Score", ascending=False
         )
+        self.ml_ratings_train_df = ml_ratings_train_df
 
     def predict(self, user_id, n_recommendations):
         user_rated_movies_idx = self.ml_ratings_train_df[self.ml_ratings_train_df["UserID"] == user_id][
@@ -40,6 +43,7 @@ class PageRankRecommender(BaseRecommender):
         return scores
 
     def _init_adjacency_matrix(self, ml_ratings_train_df):
+        # If user rated movie i (r_i) lower than movie j (r_j) ==> A[i, j] += r_j - r_i
         movies_ids = self.ml_movies_df["MovieID"].values
         A_df = pd.DataFrame(0, index=movies_ids, columns=movies_ids)
         user_groups = ml_ratings_train_df.sort_values("Rating", ascending=False).groupby("UserID")
