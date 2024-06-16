@@ -36,12 +36,14 @@ class BaseRecommender:
                     rec_df=recommendations,
                     ml_ratings_test_df=ml_ratings_test_df,
                     user_id=user_id,
+                    verbose=verbose,
                 )
                 recall_at_k = ml_recall_at_k(
                     k=k,
                     rec_df=recommendations,
                     ml_ratings_test_df=ml_ratings_test_df,
                     user_id=user_id,
+                    verbose=verbose,
                 )
                 f1_at_k = ml_f1_at_k(
                     k=k,
@@ -50,6 +52,7 @@ class BaseRecommender:
                     user_id=user_id,
                     precision_at_k=precision_at_k,
                     recall_at_k=recall_at_k,
+                    verbose=verbose,
                 )
                 history["precision@k"].append(precision_at_k)
                 history["recall@k"].append(recall_at_k)
@@ -57,7 +60,5 @@ class BaseRecommender:
 
                 sum_f1 += f1_at_k
                 cnt_f1 += 1
-                if verbose:
-                    pbar.set_postfix_str(f"Avg F1@K: {sum_f1 / cnt_f1:.2f}")
                 pbar.update(1)
         return history
