@@ -15,7 +15,11 @@ class SVDALSCollaborativeFiltering(BaseRecommender):
         super().__init__(ml_movies_df, ml_users_df)
 
     def fit(self, ml_ratings_train_df, n_factors=10, regularization=0.1, iterations=10):
-        utility_matrix = ml_ratings_train_df.pivot(index='UserID', columns='MovieID', values='Rating').fillna(0)
+        utility_matrix_df = pd.DataFrame(
+            index=ml_ratings_train_df["UserID"].unique(), columns=ml_ratings_train_df["MovieID"].unique()
+        )
+        utility_matrix_df.update(ml_ratings_train_df.pivot(values="Rating", index="UserID", columns="MovieID"))
+        utility_matrix = utility_matrix_df.fillna(0)
         user_ids = utility_matrix.index
         movie_ids = utility_matrix.columns
 
