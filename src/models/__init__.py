@@ -5,3 +5,4 @@ from src.models.popularity_based_recommender import PopularityBasedRecommender
 from src.models.content import ContentBasedFiltering
 from src.models.factorization_svd import SVDCollaborativeFiltering
 from src.models.factorization_svd_als import SVDALSCollaborativeFiltering
+from src.models.factorization_svd_grad import SVDGradientDescentRecommender
