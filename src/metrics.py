@@ -1,3 +1,9 @@
+import pandas as pd
+import numpy as np
+
+# predictive metrics
+
+
 def ml_precision_at_k(k, rec_df, ml_ratings_test_df, user_id, verbose=True):
     ml_user_ratings_test_df = ml_ratings_test_df[ml_ratings_test_df["UserID"] == user_id]
     if len(ml_user_ratings_test_df) < k:
@@ -50,3 +56,32 @@ def avg_precision_at_k(k, rec_df, ml_ratings_test_df, user_id, verbose=True):
         precision_sum += ml_precision_at_k(i,
                                            rec_df, ml_ratings_test_df, user_id)
     return precision_sum/k
+
+# Ranking metrics
+
+
+def reciprocal_rank(rec_df, ml_ratings_test_df, user_id):
+    ml_user_ratings_test_df = ml_ratings_test_df[ml_ratings_test_df["UserID"] == user_id]
+    rec_df["is_relevant"] = rec_df["MovieID"].isin(
+        ml_user_ratings_test_df["MovieID"])
+    first_relevant_index = rec_df['is_relevant'].idxmax()
+    return 1/(first_relevant_index+1)
+
+
+def NDCG(rec_df, ml_ratings_test_df, user_id):
+    ml_user_ratings_test_df = ml_ratings_test_df[ml_ratings_test_df["UserID"] == user_id]
+    rec_df["is_relevant"] = rec_df["MovieID"].isin(
+        ml_user_ratings_test_df["MovieID"])
+    ranked_list = list(rec_df['is_relevant'].apply(
+        lambda x: 1 if x == True else 0))
+    ideal_ranked_list = ranked_list.copy()
+    ideal_ranked_list = sorted(ideal_ranked_list, reverse=True)
+    DCG = 0
+    IDCG = 0
+    for i in range(len(ranked_list)):
+        DCG += (2**ranked_list[i] - 1) / float(np.log2(i + 2))
+        IDCG += (2**ideal_ranked_list[i] - 1) / float(np.log2(i + 2))
+    if IDCG == 0:
+        return 0
+    else:
+        return DCG / IDCG
