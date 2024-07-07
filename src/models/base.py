@@ -25,7 +25,7 @@ class BaseRecommender:
         users = ml_ratings_test_df["UserID"].unique()[0:2500]
         history = {"precision@k": [], "recall@k": [],
                    "f1@k": [], "average_precision": [],
-                   "reciprocal_rank": [], "NDCG": []}
+                   "reciprocal_rank": [], "NDCG": [], "relevant items": []}
         with tqdm(total=len(users)) as pbar:
             sum_f1 = 0
             cnt_f1 = 0
@@ -80,6 +80,7 @@ class BaseRecommender:
                 history["average_precision"].append(average_precision)
                 history['reciprocal_rank'].append(RR)
                 history['NDCG'].append(NDCG_metric)
+                history["relevant items"].append(relevant_items)
 
                 sum_f1 += f1_at_k
                 cnt_f1 += 1
