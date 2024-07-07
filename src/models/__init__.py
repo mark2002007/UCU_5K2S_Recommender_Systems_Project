@@ -7,3 +7,4 @@ from src.models.factorization_svd import SVDCollaborativeFiltering
 from src.models.factorization_svd_als import SVDALSCollaborativeFiltering
 from src.models.factorization_svd_grad import SVDGradientDescentRecommender
 from src.models.factorization_svd_funk import FunkSVDCollaborativeFiltering
+from src.models.neural_collaborative_filtering import NeuralCollaborativeFiltering
