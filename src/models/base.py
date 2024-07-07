@@ -1,13 +1,18 @@
 import os
-
 ROOT = os.path.join("..", "..")
 import sys
-
 sys.path.append(ROOT)
 #
-import pandas as pd
+from src.metrics import (
+    ml_precision_at_k,
+    ml_recall_at_k,
+    ml_f1_at_k,
+    avg_precision_at_k,
+    reciprocal_rank,
+    ndcg,
+)
 from tqdm import tqdm
-from src.metrics import ml_precision_at_k, ml_recall_at_k, ml_f1_at_k
+import pandas as pd
 
 
 class BaseRecommender:
@@ -23,7 +28,15 @@ class BaseRecommender:
 
     def evaluate(self, ml_ratings_test_df: pd.DataFrame, k: int, verbose=False):
         users = ml_ratings_test_df["UserID"].unique()[0:2500]
-        history = {"precision@k": [], "recall@k": [], "f1@k": []}
+        history = {
+            "precision@k": [],
+            "recall@k": [],
+            "f1@k": [],
+            "average_precision": [],
+            "reciprocal_rank": [],
+            "ndcg": [],
+            "relevant items": [],
+        }
         with tqdm(total=len(users)) as pbar:
             sum_f1 = 0
             cnt_f1 = 0
@@ -54,9 +67,29 @@ class BaseRecommender:
                     recall_at_k=recall_at_k,
                     verbose=verbose,
                 )
+                average_precision = avg_precision_at_k(
+                    k,
+                    rec_df=recommendations,
+                    ml_ratings_test_df=ml_ratings_test_df,
+                    user_id=user_id,
+                    verbose=verbose,
+                )
+                rr = reciprocal_rank(
+                    rec_df=recommendations,
+                    ml_ratings_test_df=ml_ratings_test_df,
+                    user_id=user_id,
+                )
+                ndcg_metric = ndcg(
+                    rec_df=recommendations,
+                    ml_ratings_test_df=ml_ratings_test_df,
+                    user_id=user_id,
+                )
                 history["precision@k"].append(precision_at_k)
                 history["recall@k"].append(recall_at_k)
                 history["f1@k"].append(f1_at_k)
+                history["average_precision"].append(average_precision)
+                history["reciprocal_rank"].append(rr)
+                history["ndcg"].append(ndcg_metric)
 
                 sum_f1 += f1_at_k
                 cnt_f1 += 1
