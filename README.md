@@ -73,3 +73,4 @@ Here we compute similarities between users based on their ratings, and then for 
 
 Similar to a popularity-based recommender, but scores are computed by the PageRank algorithm, where the adjacency matrix is constructed by the following rule:
 If user rated movie i (r_i) lower than movie j (r_j) ==> A[i, j] += r_j - r_i
+
