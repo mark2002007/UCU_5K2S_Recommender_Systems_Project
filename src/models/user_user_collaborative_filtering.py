@@ -43,4 +43,5 @@ class UserUserColaborativeFiltering(BaseRecommender):
         k_similar_users_ratings = k_similar_users_ratings * k_similar_users_weights
         # Get scores
         scores = k_similar_users_ratings.sum(axis=0).sort_values(ascending=False).head(n_recommendations)
+        scores.columns = ["Score"]
         return scores

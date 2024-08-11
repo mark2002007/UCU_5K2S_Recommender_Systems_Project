@@ -38,4 +38,5 @@ class SVDCollaborativeFiltering(BaseRecommender):
         user_predicted_ratings = self.predicted_ratings_df.loc[user_id].sort_values(ascending=False)
         user_rated_movies_idx = self.ml_ratings_train_df[self.ml_ratings_train_df["UserID"] == user_id]["MovieID"].values
         recommendations = user_predicted_ratings.drop(user_rated_movies_idx, errors='ignore').head(n_recommendations)
+        recommendations.columns = ["Score"]
         return recommendations

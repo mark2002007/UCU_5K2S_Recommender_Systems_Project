@@ -11,4 +11,5 @@ from src.models.neural_collaborative_filtering import NeuralCollaborativeFilteri
 from src.models.multi_armed_bandits import MultiArmedBanditsRecommender
 from src.models.ltr_linear_regression import LTRLinearRegressionRecommender
 from src.models.ltr_ranknet import RankNetRecommender
+from src.models.two_stage_recommender import TwoStageRecommender
 from src.models.markov_chains import MarkovChainRecommender

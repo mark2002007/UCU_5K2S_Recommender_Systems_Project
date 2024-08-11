@@ -60,8 +60,8 @@ class LTRLinearRegressionRecommender(BaseRecommender):
         # Create DataFrame with predictions
         recommendations = pd.DataFrame({
             'MovieID': candidate_movies,
-            'Rating': predicted_ratings
+            'Score': predicted_ratings
         })
         
         # Sort and return top n recommendations
-        return recommendations.sort_values('Rating', ascending=False).head(n_recommendations).set_index('MovieID')
+        return recommendations.sort_values('Score', ascending=False).head(n_recommendations).set_index('MovieID')

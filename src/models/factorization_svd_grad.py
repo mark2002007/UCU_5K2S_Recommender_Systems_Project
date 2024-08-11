@@ -58,4 +58,5 @@ class SVDGradientDescentRecommender(BaseRecommender):
         user_rated_movies_idx = self.ml_ratings_train_df[self.ml_ratings_train_df["UserID"] == user_id]["MovieID"].values
         recommendations = predicted_ratings_df.drop(user_rated_movies_idx, errors='ignore').sort_values(by="Rating", ascending=False).head(n_recommendations)
         
+        recommendations.columns = ["Score"]
         return recommendations
