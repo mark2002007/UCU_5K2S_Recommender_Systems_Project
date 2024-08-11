@@ -8,25 +8,26 @@ dataset ==> https://grouplens.org/datasets/movielens/1m/
    python3.9 -m venv venv
    ```
 
-2. **Install Requirements**
+2. **Activate Environment**
+   ```
+   source venv/bin/activate
+   ```
+
+3. **Install Requirements**
    ```
    pip install -r requirements.txt
    ```
 
-3. **Install FunkSVD**
+4. **Install FunkSVD**
    ```
    pip install git+https://github.com/gbolmier/funk-svd
    ```
 
-4. **Navigate to the Scripts Folder**
-   ```
-   cd scripts
-   ```
-
-5. **Run the Data Preprocessing Script**
+5. **Run the Data Preprocessing Script (Optional)**
 
    Execute the following command to start the data preprocessing:
    ```
+   cd scripts
    python data_preprocessing.py
    ```
 
